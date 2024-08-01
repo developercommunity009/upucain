@@ -13,7 +13,6 @@ const sendEmail = require("../Utils/email");
 const  cloudinary  = require("../Utils/cloudinaryConfig");
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
-const cloudinary = require("../Utils/cloudinaryConfig");
 const upload = require("../Utils/upload");
 
 

@@ -16,53 +16,6 @@ const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
 
 
-exports.uploadImage = (req, res) => {
-    // Multer middleware for handling file upload
-    upload(req, res, async (err) => {
-        if (err) {
-            return res.status(400).json({ success: false, message: err });
-        }
-
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: 'No file selected!' });
-        }
-
-        const localFilePath = req.file.path;
-        const { userId } = req.body; // userId should be in the body as JSON
-
-        if (!userId) {
-            // Clean up uploaded file if userId is not provided
-
-            return res.status(400).json({ success: false, message: 'User ID is required' });
-        }
-
-        try {
-            const user = await User.findById(userId);
-
-            if (!user) {
-                // Clean up uploaded file if user not found
-
-                return res.status(404).json({ success: false, message: 'User not found' });
-            }
-
-            cloudinary.uploader.upload(localFilePath, async (error, result) => {
-                if (error) {
-                    // Clean up uploaded file on Cloudinary error
-
-                    return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
-                }
-
-                // Delete the image from the local folder
-                
-            });
-        } catch (err) {
-            // Clean up uploaded file on database error
-            res.status(500).json({ success: false, message: 'Database query error', err });
-        }
-    });
-};
-
-
 // CREATING TOKENA
 const signToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY, });

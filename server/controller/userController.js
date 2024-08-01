@@ -19,60 +19,48 @@ mongoose.set('useFindAndModify', false);
 exports.uploadImage = (req, res) => {
     // Multer middleware for handling file upload
     upload(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({ success: false, message: err });
-      }
-  
-      if (!req.file) {
-        return res.status(400).json({ success: false, message: 'No file selected!' });
-      }
-  
-      const localFilePath = req.file.path;
-      const { userId } = req.body; // userId should be in the body as JSON
-  
-      if (!userId) {
-        // Clean up uploaded file if userId is not provided
-        fs.unlink(localFilePath, () => {});
-        return res.status(400).json({ success: false, message: 'User ID is required' });
-      }
-  
-      try {
-        const user = await User.findById(userId);
-  
-        if (!user) {
-          // Clean up uploaded file if user not found
-          fs.unlink(localFilePath, () => {});
-          return res.status(404).json({ success: false, message: 'User not found' });
+        if (err) {
+            return res.status(400).json({ success: false, message: err });
         }
-  
-        cloudinary.uploader.upload(localFilePath, async (error, result) => {
-          if (error) {
-            // Clean up uploaded file on Cloudinary error
-            fs.unlink(localFilePath, () => {});
-            return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
-          }
-  
-            try {
-              // Update the user with the image URL
-              user.image = {
-                url: result.secure_url,
-                public_id: result.public_id,
-              };
-  
-              await user.save();
-              res.status(200).json({ success: true, user });
-            } catch (err) {
-              res.status(500).json({ success: false, message: 'Database update error', err });
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No file selected!' });
+        }
+
+        const localFilePath = req.file.path;
+        const { userId } = req.body; // userId should be in the body as JSON
+
+        if (!userId) {
+            // Clean up uploaded file if userId is not provided
+
+            return res.status(400).json({ success: false, message: 'User ID is required' });
+        }
+
+        try {
+            const user = await User.findById(userId);
+
+            if (!user) {
+                // Clean up uploaded file if user not found
+
+                return res.status(404).json({ success: false, message: 'User not found' });
             }
-          });
-        });
-      } catch (err) {
-        // Clean up uploaded file on database error
-        fs.unlink(localFilePath, () => {});
-        res.status(500).json({ success: false, message: 'Database query error', err });
-      }
+
+            cloudinary.uploader.upload(localFilePath, async (error, result) => {
+                if (error) {
+                    // Clean up uploaded file on Cloudinary error
+
+                    return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
+                }
+
+                // Delete the image from the local folder
+                
+            });
+        } catch (err) {
+            // Clean up uploaded file on database error
+            res.status(500).json({ success: false, message: 'Database query error', err });
+        }
     });
-  };
+};
 
 
 // CREATING TOKENA

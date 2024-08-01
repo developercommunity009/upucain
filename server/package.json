@@ -2,7 +2,7 @@
   "name": "nft-data",
   "version": "1.0.0",
   "description": "nft",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "NODE_ENV=developement nodemon server.js",
     "prod": "NODE_ENV=production nodemon server.js"

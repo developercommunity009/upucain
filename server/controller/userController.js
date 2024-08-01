@@ -10,7 +10,6 @@ const userEmail = require("../Utils/userMail");
 const crypto = require("crypto");  // crypto is rendomly installed
 const { promisify } = require("util");
 const sendEmail = require("../Utils/email"); 
-const fs = require('fs');
 const  cloudinary  = require("../Utils/cloudinaryConfig");
 const upload = require("../Utils/upload");
 const mongoose = require('mongoose');
@@ -52,12 +51,6 @@ exports.uploadImage = (req, res) => {
             fs.unlink(localFilePath, () => {});
             return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
           }
-  
-          // Delete the image from the local folder
-          fs.unlink(localFilePath, async (err) => {
-            if (err) {
-              return res.status(500).json({ success: false, message: 'Error deleting local file', err });
-            }
   
             try {
               // Update the user with the image URL

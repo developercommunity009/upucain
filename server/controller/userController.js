@@ -18,55 +18,50 @@ const upload = require("../Utils/upload");
 
 
 exports.uploadImage = (req, res) => {
-  upload(req, res, async (err) => {
-    if (err) {
-      return res.status(400).json({ success: false, message: err });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file selected!' });
-    }
-
-    const { userId } = req.body; // userId should be in the body as JSON
-
-    if (!userId) {
-      return res.status(400).json({ success: false, message: 'User ID is required' });
-    }
-
-    try {
-      const user = await User.findById(userId);
-
-      if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+    upload(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err });
       }
-
-      // Convert buffer to base64 string
-      const fileData = req.file.buffer.toString('base64');
-
-      // Upload image to Cloudinary
-      cloudinary.uploader.upload(`data:${req.file.mimetype};base64,${fileData}`, async (error, result) => {
-        if (error) {
-          return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
+  
+      if (!req.file) {
+        return res.status(400).json({ success: false, message: 'No file selected!' });
+      }
+  
+      const { userId } = req.body; // userId should be in the body as JSON
+  
+      if (!userId) {
+        return res.status(400).json({ success: false, message: 'User ID is required' });
+      }
+  
+      try {
+        const user = await User.findById(userId);
+  
+        if (!user) {
+          return res.status(404).json({ success: false, message: 'User not found' });
         }
-
-        try {
+  
+        // Upload the file directly to Cloudinary
+        cloudinary.uploader.upload_stream((error, result) => {
+          if (error) {
+            return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
+          }
+  
           // Update the user with the image URL
           user.image = {
             url: result.secure_url,
             public_id: result.public_id,
           };
-
-          await user.save();
-          res.status(200).json({ success: true, user });
-        } catch (err) {
-          res.status(500).json({ success: false, message: 'Database update error', err });
-        }
-      });
-    } catch (err) {
-      res.status(500).json({ success: false, message: 'Database query error', err });
-    }
-  });
-};
+  
+          user.save()
+            .then(() => res.status(200).json({ success: true, user }))
+            .catch(err => res.status(500).json({ success: false, message: 'Database update error', err }));
+        }).end(req.file.buffer); // Pass the file buffer to Cloudinary
+  
+      } catch (err) {
+        res.status(500).json({ success: false, message: 'Database query error', err });
+      }
+    });
+  };
 
 
 // CREATING TOKENA

@@ -1,12 +1,8 @@
 const multer = require('multer');
 const path = require('path');
 
-const storage = multer.diskStorage({
-  destination: './public/images/',
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  }
-});
+// Configure Multer to use memory storage
+const storage = multer.memoryStorage();
 
 function checkFileType(file, cb) {
   const filetypes = /jpeg|jpg|png|gif/;
@@ -29,3 +25,4 @@ const upload = multer({
 }).single('image');
 
 module.exports = upload;
+

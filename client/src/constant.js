@@ -1,4 +1,4 @@
-export const BACKEND_URL ='http://localhost:4000'
+export const BACKEND_URL ='https://upucain-tu3a.vercel.app'
 // export const BACKEND_URL = 'https://inhertly-backend.vercel.app'
 
 export const CONTRACT_ADDRESS = '0x6526b21feb2226d9994c5dddaDDC1beBC4A26Db5'

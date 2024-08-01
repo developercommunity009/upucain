@@ -32,7 +32,9 @@ app.use(mongoSanitize());
 
 
 
-
+app.get("/" , (req, res) => {
+    res.json("UPU-Chain Corrier Project")
+})
 
 // Secure Header HTTP
 app.use(helmet());
@@ -56,9 +58,7 @@ app.use(cors({
 if(process.env.NODE_ENV == "developement"){
     app.use(morgan("dev"))
 }
-app.get("/" , (req, res) => {
-    res.json("UPU-Chain")
-})
+
 
 const ratelimit = rateLimit({
     // if user trafic are high on webste then can incress the value of max

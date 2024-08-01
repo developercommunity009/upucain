@@ -11,7 +11,6 @@ const crypto = require("crypto");  // crypto is rendomly installed
 const { promisify } = require("util");
 const sendEmail = require("../Utils/email"); 
 const  cloudinary  = require("../Utils/cloudinaryConfig");
-const upload = require("../Utils/upload");
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
 

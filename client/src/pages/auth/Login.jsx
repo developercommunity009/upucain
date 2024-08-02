@@ -41,7 +41,7 @@ const Login = () => {
         },
 
         async onSuccess(data) {
-            let res = await data.json();
+            let res =  data.json();
             if (res.success) {
                 if (res.user.role === "admin") {
                     navigate('/master/companies')

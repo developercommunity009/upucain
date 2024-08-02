@@ -1,9 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
 import { useContext, useEffect } from "react"
-import { Route, Routes, useLocation } from "react-router-dom"
-import { BACKEND_URL } from "./constant"
+import { Route, Routes } from "react-router-dom"
 import StatesContext from "./context/StatesContext"
-import Contract from "./pages/master/Companies"
 import Profile from "./pages/Profile"
 import Login from "./pages/auth/Login"
 import Register from "./pages/auth/Register"
@@ -25,52 +22,7 @@ import MyTrackings from "./pages/user/MyTrackings"
 const App = () => {
 
   const context = useContext(StatesContext)
-  const { state, handleStateChange } = context
-  console.log(state);
-  const location = useLocation()
-
-  const { data, isFetching } = useQuery({
-    queryKey: ['user'],
-    queryFn: () => {
-      return fetch(`${BACKEND_URL}/api/user/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      }).then(
-        async (res) => await res.json()
-      );
-    },
-  })
-
-  const mutation = useMutation({
-    mutationFn: () => {
-      return fetch(`${BACKEND_URL}/api/session-time/update`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include'
-      });
-    },
-
-  })
-
-  useEffect(() => {
-
-    if (!isFetching && !data) {
-      localStorage.removeItem('LoggedInTime')
-      localStorage.removeItem('authUser')
-    }
-
-
-    if (data && data.user) {
-      handleStateChange({ user: data.user });
-      localStorage.setItem('authUser', JSON.stringify(data.user));
-    }
-
-  }, [isFetching, data])
+  const { state, handleStateChange } = context;
 
   useEffect(() => {
 
@@ -117,9 +69,9 @@ const App = () => {
   }, [location])
 
 
-  useEffect(() => {
-    mutation.mutate()
-  }, [])
+  // useEffect(() => {
+  //   mutation.mutate()
+  // }, [])
 
 
   return (

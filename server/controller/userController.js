@@ -9,12 +9,18 @@ const contactEmail = require("../Utils/contactMail");
 const userEmail = require("../Utils/userMail");
 const crypto = require("crypto");  // crypto is rendomly installed
 const { promisify } = require("util");
+<<<<<<< HEAD
 const sendEmail = require("../Utils/email");
 const fs = require('fs');
 const cloudinary = require("../Utils/cloudinaryConfig");
 const upload = require("../Utils/upload");
+=======
+const sendEmail = require("../Utils/email"); 
+const  cloudinary  = require("../Utils/cloudinaryConfig");
+>>>>>>> origin/main
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
+const upload = require("../Utils/upload");
 
 
 // exports.uploadImage = (req, res) => {
@@ -299,7 +305,7 @@ exports.forGetPassword = catchAsync(async (req, res, next) => {
     // Send Email back to User
     // "protocol" works on all envirments
     // const resetURL = `${req.protocol}://${req.get("host")}/api/v1/auth/resetpassword/${resetToken}`;
-    const resetURL = `Hi ,Pleace follow this link to reset Your Password . This link is valid till 5 minutes from now . <a href=http://localhost:5173/resetpassword/${resetToken}>Click Here</a>`
+    const resetURL = `Hi ,Pleace follow this link to reset Your Password . This link is valid till 5 minutes from now . <a href=https://upucain.vercel.app/resetpassword/${resetToken}>Click Here</a>`
 
 
     try {

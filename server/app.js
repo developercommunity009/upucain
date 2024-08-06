@@ -51,7 +51,7 @@ app.get("/" , (req, res) => {
 app.use(helmet());
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Replace with your frontend URL
+    origin: 'https://upucain.vercel.app', // Replace with your frontend URL
     credentials: true, // Enable sending cookies with CORS
   }));
   
@@ -105,5 +105,9 @@ app.use(globalErrorHandler)
 
 
 
+<<<<<<< HEAD
 // module.exports = app; 
 module.exports = httpServer;
+=======
+module.exports = app; 
+>>>>>>> origin/main

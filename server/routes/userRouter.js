@@ -15,9 +15,8 @@ router.route("/resetpassword/:token").patch(userController.reSetPassword);
 router.route("/updatingpassword").patch(userController.protect, userController.updatingPassword);
 
 // ROUTER USERS
-router.post('/uploadimage', userController.uploadImage);
 router.route("/deleteme").delete(userController.protect  , userController.deleteMe);
-
+router.post('/uploadimage', userController.uploadImage);
 router.route("/contactmail").post(userController.protect  , userController.createContactMail);
 router.route("/usermail").post(userController.createUserMail);
 

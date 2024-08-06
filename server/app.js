@@ -11,19 +11,30 @@ const companyRoutes = require('./routes/companyRoutes');
 const shipmentRoutes = require('./routes/shipmentRoutes');
 const trackingRoutes = require('./routes/trackingRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
-
-
+const { createServer} =  require("http");
+const { Server } = require("socket.io");
 const AppError = require("./Utils/appError");
 const globalErrorHandler = require("./controller/errorController");
 
 
 const usersRouter = require("./routes/userRouter");
+const { initializeSocketIO } = require("./socket/index.js");
 
 
 
 dotenv.config({path : "./config.env"});
 const app = express();
-
+const httpServer = createServer(app);
+const io = new Server(httpServer, {                    // <===
+    pingTimeout: 60000,
+    cors: {
+      origin: `http://localhost:5173`,
+      credentials: true,
+      },
+  });
+  
+  app.set("io", io); 
+ 
 app.use(express.json({limit : "10kb"}));
 app.use(bodyParser.json())
 
@@ -52,14 +63,14 @@ app.use(cors({
     res.json({ id: 1, name: 'John Doe' });
   });
   
-
-
-//  Globle MiddelWare
+  
+  
+  //  Globle MiddelWare
 if(process.env.NODE_ENV == "developement"){
     app.use(morgan("dev"))
-}
+    }
 
-
+    
 const ratelimit = rateLimit({
     // if user trafic are high on webste then can incress the value of max
     max :1000,
@@ -82,10 +93,10 @@ app.use("/api/v1/shipment" , shipmentRoutes );
 app.use("/api/v1/tracking" , trackingRoutes );
 app.use("/api/v1/invoice" , invoiceRoutes );
 
-
+initializeSocketIO(io);
 
 app.all("*" , (req , res, next)=>{
-
+    
     next( new AppError(`Can't find ${req.originalUrl} on this server` , 404))
 })
 
@@ -94,4 +105,5 @@ app.use(globalErrorHandler)
 
 
 
-module.exports = app; 
+// module.exports = app; 
+module.exports = httpServer;

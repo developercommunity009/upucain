@@ -7,12 +7,15 @@ import { BACKEND_URL } from '../../constant';
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 
 
-const InvoiceModal = ({ open, setOpen , id }) => {
+const InvoiceModal = ({ open, setOpen, id}) => {
 
+    const token = JSON.parse(localStorage.getItem("token"));
     const context = useContext(StatesContext)
-    const { handleStateChange , state} = context;
+    const { handleStateChange, state } = context;
     const [country, setcountry] = useState('')
     const [loading, setloading] = useState(false)
+
+  
 
     const fetchInvoiceById = async () => {
         const response = await fetch(`${BACKEND_URL}/api/v1/invoice/${id}`, {
@@ -36,31 +39,34 @@ const InvoiceModal = ({ open, setOpen , id }) => {
         },
     });
 
-    console.log(data)
-// companyName
-// : 
-// "TCS"
-// date
-// : 
-// "2024-07-29T00:03:49.957Z"
-// fee
-// : 
-// 40
-// shipmentId
-// : 
-// null
-// status
-// : 
-// "Pending"
-// trackingId
-// : 
-// "0928017784"
-// __v
-// : 
-// 0
-// _id
-// : 
-// "66a6dc657bf3033505ec6893"
+
+ const mutation = useMutation({
+        mutationFn: () => {
+            setloading(true);
+            return fetch(`${BACKEND_URL}/api/v1/invoice/pay/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                credentials: 'include',
+            });
+        },
+
+        async onSuccess(data) {
+            let res = await data.json()
+            setloading(false)
+            console.log(res)
+            if (res.success) {
+                handleStateChange({ success: res.success })
+                setOpen(false)
+            } else {
+                handleStateChange({ success: res.error })
+            }
+        },
+
+    })
+
 
     return (
         <div>
@@ -109,15 +115,15 @@ const InvoiceModal = ({ open, setOpen , id }) => {
                                 <div className='border-t border-b border-gray-300  mt-[10px] space-y-[5px] py-[10px]'>
                                     <div className='flex justify-between'>
                                         <h2 className='text-[13px] font-semibold'>
-                                        company Name:
+                                            company Name:
                                         </h2>
                                         <h2 className='text-[13px]  text-gray-400'>
-                                        {data.companyName}
+                                            {data.companyName}
                                         </h2>
                                     </div>
                                     <div className='flex justify-between'>
                                         <h2 className='text-[13px] font-semibold'>
-                                        Chargeable Amount:
+                                            Chargeable Amount:
                                         </h2>
                                         <h2 className='text-[13px]  text-gray-400'>
                                             {data.fee}
@@ -125,54 +131,22 @@ const InvoiceModal = ({ open, setOpen , id }) => {
                                     </div>
                                     <div className='flex justify-between'>
                                         <h2 className='text-[13px] font-semibold'>
-                                        Payment Status:
+                                            Payment Status:
                                         </h2>
                                         <h2 className='text-[13px]  text-gray-400'>
                                             {data.status}
                                         </h2>
                                     </div>
-                                    {/* <div className='flex justify-between'>
-                                        <h2 className='text-[13px] font-semibold'>
-                                            Shipment Weight:
-                                        </h2>
-                                        <h2 className='text-[13px]  text-gray-400'>
-                                            20
-                                        </h2>
-                                    </div>
-                                    <div className='flex justify-between'>
-                                        <h2 className='text-[13px] font-semibold'>
-                                            Receiver Contact Number:
-                                        </h2>
-                                        <h2 className='text-[13px]  text-gray-400'>
-                                            8300
-                                        </h2>
-                                    </div>
-                                    <div className='flex justify-between'>
-                                        <h2 className='text-[13px] font-semibold'>
-                                            Receiver Country:
-                                        </h2>
-                                        <h2 className='text-[13px]  text-gray-400'>
-                                            xyc
-                                        </h2>
-                                    </div>
-                                    <div className='flex justify-between'>
-                                        <h2 className='text-[13px] font-semibold'>
-                                            Receiver Address:
-                                        </h2>
-                                        <h2 className='text-[13px]  text-gray-400'>
-                                            xyc
-                                        </h2>
-                                    </div> */}
 
                                 </div>
 
                                 <div className='flex justify-between mt-[10px]'>
-                                    <h2 className='text-[20px] font-semibold'>
-                                        Total:
-                                    </h2>
-                                    <h2 className='text-[20px] font-semibold'>
-                                        ${data.fee}
-                                    </h2>
+                                    <button className="w-full bg-[#FFA500] text-[15px] font-semibold text-white rounded-[12px] h-[40px]"
+                                        onClick={() => mutation.mutate()}
+                                        disabled={loading || mutation.isPending}
+                                    >
+                                        {(loading || mutation.isPending) ? <CircularProgress sx={{ color: 'white' }} size={20} /> : `Pay Now  ${data.fee}`}
+                                    </button>
                                 </div>
 
 

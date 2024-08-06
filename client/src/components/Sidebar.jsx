@@ -2,11 +2,13 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SendIcon from '@mui/icons-material/Send';
 import TextSnippetIcon from '@mui/icons-material/TextSnippet';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import StatesContext from '../context/StatesContext';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import { Badge } from '@mui/material';
 
 const masterroutes = [
     {
@@ -53,15 +55,20 @@ const userroutes = [
         path: '/tracking',
         Icon: TrackChangesIcon
     },
+    {
+        title: 'Notifications',
+        path: '/invoice',
+        Icon: NotificationsIcon
+    },
 
 ]
 
 const Sidebar = () => {
 
     const context = useContext(StatesContext)
-    const { handleLogout, state } = context
+    const { handleLogout, state , notificationCount} = context
 
-
+    console.log(notificationCount)
     const { pathname } = useLocation()
     const navigate = useNavigate()
 
@@ -77,25 +84,35 @@ const Sidebar = () => {
     return (
         <div className="fixed top-0 left-0 bottom-0 z-40 hidden md:block  pt-[100px] h-screen bg-[#003366] w-[230px]">
             <div className='px-[20px] flex flex-col justify-between h-full'>
-                <div className='space-y-[30px]' >
+            <div className='space-y-[30px]'>
                     {routes.map((item, index) => (
                         <div key={index} className='flex items-center gap-[10px] cursor-pointer'
                             onClick={() => {
-                                navigate(item.path)
+                                navigate(item.path);
                             }}
                         >
-                            <item.Icon
-                                sx={{
-                                    color: pathname === item.path ? '#FFA500' : 'white',
-                                    fontSize: '22px'
-                                }}
-                            />
+                            {item.title === 'Notifications' ? (
+                                <Badge badgeContent={notificationCount} color="primary">
+                                    <item.Icon
+                                        sx={{
+                                            color: pathname === item.path ? '#FFA500' : 'white',
+                                            fontSize: '22px'
+                                        }}
+                                    />
+                                </Badge>
+                            ) : (
+                                <item.Icon
+                                    sx={{
+                                        color: pathname === item.path ? '#FFA500' : 'white',
+                                        fontSize: '22px'
+                                    }}
+                                />
+                            )}
                             <h2 className={` ${pathname === item.path ? 'text-[#FFA500]' : 'text-white'} font-medium text-[16px]`}>
                                 {item.title}
                             </h2>
                         </div>
                     ))}
-
                 </div>
 
                 <div className='pb-[25px] space-y-[20px]'>

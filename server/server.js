@@ -1,7 +1,19 @@
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const app =require("./app");
+const httpServer = require("./app");
 
+
+// const startServer = () => {
+//     httpServer.listen(process.env.PORT || 8080, () => {
+//       console.info(
+//         `📑 Visit the documentation at: http://localhost:${
+//           process.env.PORT || 8080
+//           }`
+//       );
+//       console.log("⚙️  Server is running on port: " + process.env.PORT);
+//       });
+//       };
 
 process.on("uncaughtException" , (err)=>{
     console.log("uncaughtException Shutting down application");
@@ -19,7 +31,7 @@ mongoose.connect(DB, { useNewUrlParser: true, useUnifiedTopology: true })
 
 
 const port = process.env.PORT || 3001;
-const server = app.listen(port, () => {
+const server = httpServer.listen(port, () => {
     console.log(`App listing on port  ${port}....`);
 })
 

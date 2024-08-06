@@ -1,32 +1,34 @@
 
 import { CircularProgress } from '@mui/material';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import NavBar from '../../components/NavBar';
 import Sidebar from '../../components/Sidebar';
 import EditCompanyModal from '../../components/modal/EditCompany';
 import InvoiceModal from '../../components/modal/InvoiceModal';
 import StatesContext from '../../context/StatesContext';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { BACKEND_URL } from '../../constant';
 
 
-const tableHead = ['Tracking Number', 'Company Name', 'Sender Name', 'Reciver Name', 'Chargeable Amount', 'Payment Status', 'Actions'];
+const tableHead = ['Tracking Number', 'Company Name','Sender Name' , 'Reciver Name' , 'Chargeable Amount', 'Payment Status', 'Actions'];
 
-const MasterInvoice = () => {
+const Invoice = () => {
 
     const [open, setopen] = useState(false)
     const [isLoading, setisLoading] = useState(false)
     const [id, setId] = useState(false)
     const context = useContext(StatesContext)
+    const { handleStateChange , state , socket} = context;
+    
 
     const token = JSON.parse(localStorage.getItem("token"));
 
-    const { handleStateChange, state } = context;
     const fetchInvoices = async () => {
-        const response = await fetch(`${BACKEND_URL}/api/v1/invoice/`, {
+        const response = await fetch(`${BACKEND_URL}/api/v1/invoice/inprogress`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                 'Authorization': `Bearer ${token}`
             },
             credentials: 'include',
         });
@@ -43,38 +45,14 @@ const MasterInvoice = () => {
             console.error('Error fetching data:', error);
         }
     });
-
-
-    const mutation = useMutation({
-        mutationFn: (newData) => {
-            return fetch(`${BACKEND_URL}/api/v1/invoice/request-payment/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                credentials: 'include',
-                body: JSON.stringify(newData)
-            });
-        },
-
-        async onSuccess(data) {
-            let res = await data.json()
-            console.log(res)
-            if (res.success) {
-                handleStateChange({ success: res.success })
-            }
-        },
-
-    })
-
-
+ 
+    
 
     return (
         <div>
 
             {open && (
-                <InvoiceModal open={open} setOpen={setopen} id={id} />
+                <InvoiceModal open={open} setOpen={setopen} id={id}/>
             )}
 
             <Sidebar />
@@ -84,7 +62,7 @@ const MasterInvoice = () => {
                     <div className='max-w-[1300px] mx-auto'>
 
                         <h2 className='text-[#FFA500] font-semibold text-center text-[30px] mb-[10px]'>
-                            Shipment Invoices
+                            Invoices
                         </h2>
 
                         <div
@@ -121,32 +99,29 @@ const MasterInvoice = () => {
                                                 <td className="text-[13px]   text-center ">
                                                     {item.companyName}
                                                 </td>
-                                                <td className="text-[13px] text-center ">
+                                                      <td className="text-[13px] text-center ">
                                                     {item.shipmentId?.senderDetails.name}
                                                 </td>
                                                 <td className="text-[13px] text-center ">
-                                                    {item.shipmentId?.receiverDetails.name}
-                                                </td>
+                                                {item.shipmentId?.receiverDetails.name}
+                                                </td> 
                                                 <td className="text-[13px]   text-center ">
                                                     {item.fee}
                                                 </td>
                                                 <td className="text-[13px]   text-center ">
                                                     {item.status}
                                                 </td>
-
-
+                                           
 
 
                                                 <td className=" gap-[10px]">
 
                                                     <div className="cursor-pointer flex justify-center"
                                                     >
-                                                        <button
-                                                            className={`${item.status === "In Progress" ? 'bg-gray-500' : item.status === "Paid" ? 'bg-green-500' : 'bg-[#FFA500]'} text-white font-semibold text-[11px] px-[10px] py-[5px] rounded-[20px]`}
-                                                            onClick={() => mutation.mutate({ invoiceId: item._id })}
-                                                            disabled={item.status === "In Progress" || item.status === "Paid"}
+                                                        <button className='bg-[#FFA500] text-white font-semibold text-[11px] px-[10px] py-[5px] rounded-[20px]'
+                                                            onClick={() => {setId(item._id),setopen(true)}}
                                                         >
-                                                            {item.status === "In Progress" ? "In Progress" : item.status === "Paid" ? "Payment Paid" : "Payment Request"}
+                                                            View Invoice
                                                         </button>
                                                     </div>
                                                 </td>
@@ -185,4 +160,4 @@ const MasterInvoice = () => {
     )
 }
 
-export default MasterInvoice
+export default Invoice

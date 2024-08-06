@@ -9,16 +9,83 @@ const contactEmail = require("../Utils/contactMail");
 const userEmail = require("../Utils/userMail");
 const crypto = require("crypto");  // crypto is rendomly installed
 const { promisify } = require("util");
-const sendEmail = require("../Utils/email"); 
+const sendEmail = require("../Utils/email");
 const fs = require('fs');
-const  cloudinary  = require("../Utils/cloudinaryConfig");
+const cloudinary = require("../Utils/cloudinaryConfig");
 const upload = require("../Utils/upload");
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
 
 
+// exports.uploadImage = (req, res) => {
+//     // Multer middleware for handling file upload
+//     upload(req, res, async (err) => {
+//       if (err) {
+//         return res.status(400).json({ success: false, message: err });
+//       }
+
+//       if (!req.file) {
+//         return res.status(400).json({ success: false, message: 'No file selected!' });
+//       }
+
+//       const localFilePath = req.file.path;
+//       const { userId } = req.body; // userId should be in the body as JSON
+
+//       if (!userId) {
+//         // Clean up uploaded file if userId is not provided
+//         fs.unlink(localFilePath, () => {});
+//         return res.status(400).json({ success: false, message: 'User ID is required' });
+//       }
+
+//       try {
+//         const user = await User.findById(userId);
+
+//         if (!user) {
+//           // Clean up uploaded file if user not found
+//           fs.unlink(localFilePath, () => {});
+//           return res.status(404).json({ success: false, message: 'User not found' });
+//         }
+
+//         cloudinary.uploader.upload(localFilePath, async (error, result) => {
+//           if (error) {
+//             // Clean up uploaded file on Cloudinary error
+//             fs.unlink(localFilePath, () => {});
+//             return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
+//           }
+
+//           // Delete the image from the local folder
+//           fs.unlink(localFilePath, async (err) => {
+//             if (err) {
+//               return res.status(500).json({ success: false, message: 'Error deleting local file', err });
+//             }
+
+//             try {
+//               // Update the user with the image URL
+//               user.image = {
+//                 url: result.secure_url,
+//                 public_id: result.public_id,
+//               };
+
+//               await user.save();
+//               res.status(200).json({ success: true, user });
+//             } catch (err) {
+//               res.status(500).json({ success: false, message: 'Database update error', err });
+//             }
+//           });
+//         });
+//       } catch (err) {
+//         // Clean up uploaded file on database error
+//         fs.unlink(localFilePath, () => {});
+//         res.status(500).json({ success: false, message: 'Database query error', err });
+//       }
+//     });
+//   };
+
+
+
+// CREATING TOKENA
+
 exports.uploadImage = (req, res) => {
-    // Multer middleware for handling file upload
     upload(req, res, async (err) => {
       if (err) {
         return res.status(400).json({ success: false, message: err });
@@ -28,12 +95,9 @@ exports.uploadImage = (req, res) => {
         return res.status(400).json({ success: false, message: 'No file selected!' });
       }
   
-      const localFilePath = req.file.path;
       const { userId } = req.body; // userId should be in the body as JSON
   
       if (!userId) {
-        // Clean up uploaded file if userId is not provided
-        fs.unlink(localFilePath, () => {});
         return res.status(400).json({ success: false, message: 'User ID is required' });
       }
   
@@ -41,48 +105,32 @@ exports.uploadImage = (req, res) => {
         const user = await User.findById(userId);
   
         if (!user) {
-          // Clean up uploaded file if user not found
-          fs.unlink(localFilePath, () => {});
           return res.status(404).json({ success: false, message: 'User not found' });
         }
   
-        cloudinary.uploader.upload(localFilePath, async (error, result) => {
+        // Upload the file directly to Cloudinary
+        cloudinary.uploader.upload_stream((error, result) => {
           if (error) {
-            // Clean up uploaded file on Cloudinary error
-            fs.unlink(localFilePath, () => {});
             return res.status(500).json({ success: false, message: 'Cloudinary upload error', error });
           }
   
-          // Delete the image from the local folder
-          fs.unlink(localFilePath, async (err) => {
-            if (err) {
-              return res.status(500).json({ success: false, message: 'Error deleting local file', err });
-            }
+          // Update the user with the image URL
+          user.image = {
+            url: result.secure_url,
+            public_id: result.public_id,
+          };
   
-            try {
-              // Update the user with the image URL
-              user.image = {
-                url: result.secure_url,
-                public_id: result.public_id,
-              };
+          user.save()
+            .then(() => res.status(200).json({ success: true, user }))
+            .catch(err => res.status(500).json({ success: false, message: 'Database update error', err }));
+        }).end(req.file.buffer); // Pass the file buffer to Cloudinary
   
-              await user.save();
-              res.status(200).json({ success: true, user });
-            } catch (err) {
-              res.status(500).json({ success: false, message: 'Database update error', err });
-            }
-          });
-        });
       } catch (err) {
-        // Clean up uploaded file on database error
-        fs.unlink(localFilePath, () => {});
         res.status(500).json({ success: false, message: 'Database query error', err });
       }
     });
   };
 
-
-// CREATING TOKENA
 const signToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRY, });
 }
@@ -103,7 +151,7 @@ const createSendToken = (user, statusCode, res) => {
     user.password = undefined;
 
     res.status(statusCode).json({
-        success:'succesfuly Redister/LogedIn',
+        success: 'succesfuly Redister/LogedIn',
         token,
         user
     })
@@ -212,9 +260,9 @@ exports.admin = catchAsync(async (req, res, next) => {
         return next(new AppError("the User Belonging to this token no longer Exist ", 405))
     }
 
-   
+
     if (!currentUser || currentUser.role !== 'admin') {
-     return next(new AppError("Allow only Admin Not for all ", 409))
+        return next(new AppError("Allow only Admin Not for all ", 409))
     }
 
     // // // USER WILL HAVE THE PRODUCTVE DATA
@@ -243,17 +291,17 @@ exports.forGetPassword = catchAsync(async (req, res, next) => {
     if (!user) {
         return next(new AppError("there is NO User with this Email ID ", 404));
     }
-    
+
     // Create a rendom Token
     const resetToken = user.createPasswordRestToken();
     await user.save({ validateBeforeSave: false });
-    
+
     // Send Email back to User
     // "protocol" works on all envirments
     // const resetURL = `${req.protocol}://${req.get("host")}/api/v1/auth/resetpassword/${resetToken}`;
     const resetURL = `Hi ,Pleace follow this link to reset Your Password . This link is valid till 5 minutes from now . <a href=http://localhost:5173/resetpassword/${resetToken}>Click Here</a>`
 
-   
+
     try {
         await sendEmail({
             email: user.email,
@@ -263,7 +311,7 @@ exports.forGetPassword = catchAsync(async (req, res, next) => {
         })
 
 
-        res.status(200).json({success:"token send to your email address"});
+        res.status(200).json({ success: "token send to your email address" });
 
 
     } catch (error) {
@@ -298,7 +346,7 @@ exports.reSetPassword = catchAsync(async (req, res, next) => {
     user.passwordRestExpries = undefined;
     await user.save();
 
-    res.status(200).json({success:"password reset success"});
+    res.status(200).json({ success: "password reset success" });
     // Log the user in , send JWT
     // createSendToken(user , 200 , res);
 })
@@ -339,19 +387,19 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     if (req.body.password || req.body.confrimPassword) {
         return next(new AppError("this route Not for password Update please use /updatingpassword", 400));
     }
-    
+
     // Update User Data
     // user can Only Change name , email , photo , discription Not for all
-    const filtereBody = filterObj(req.body, "firstName", "lastName"  , "email");
+    const filtereBody = filterObj(req.body, "firstName", "lastName", "email");
     const updateUser = await User.findByIdAndUpdate(req.user.id, filtereBody, {
         new: true,
         runValidators: true,
         useFindAndModify: false
     })
-console.log(updateUser)
+    console.log(updateUser)
     res.status(200).json({
         success: "Profile Updated Successfuly",
-        user:updateUser
+        user: updateUser
     })
 })
 
@@ -385,11 +433,11 @@ exports.createUsers = (req, res) => {
     })
 }
 
-exports.getSingalUser = catchAsync(async(req, res) => {
+exports.getSingalUser = catchAsync(async (req, res) => {
     const user = await User.findById(req.params.id).populate("whislist").populate("following").populate("followors");
-      if(!user){
+    if (!user) {
         return next(new AppError("User Doesn't Exist in DB", 500));
-      }
+    }
     res.status(200).json(user);
 })
 
@@ -397,23 +445,23 @@ exports.getSingalUser = catchAsync(async(req, res) => {
 //     try {
 //       const { userId } = req.params;
 //       const { firstName, lastName, email } = req.body;
-  
+
 //       if (!firstName && !lastName && !email) {
 //         return next(new AppError("No fields to update", 400));
 //       }
-  
+
 //       const user = await User.findById(userId);
-  
+
 //       if (!user) {
 //         return next(new AppError("User not found", 404));
 //       }
-  
+
 //       if (firstName) user.firstName = firstName;
 //       if (lastName) user.lastName = lastName;
 //       if (email) user.email = email;
-  
+
 //       await user.save();
-  
+
 //       res.status(200).json({
 //         status: "success",
 //         message: "User updated successfully",
@@ -432,11 +480,11 @@ exports.deleteUsers = (req, res) => {
 }
 
 
-exports.createContactMail = catchAsync(async(req , res)=>{
-    
-    const { discreption ,email , name } = req.body;
-    const user = await User.findOne({email});
-    if(!user){
+exports.createContactMail = catchAsync(async (req, res) => {
+
+    const { discreption, email, name } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
         return next(new AppError("Uset Dosn't Exist with This Email", 400));
     }
 
@@ -447,7 +495,7 @@ exports.createContactMail = catchAsync(async(req , res)=>{
             email: email,
             subject: `User ${name} Need SomeThings`,
             message: "This is Contatact Us Mail",
-            html:discreption
+            html: discreption
         })
 
         res.status(200).json("message send successfly");
@@ -459,11 +507,11 @@ exports.createContactMail = catchAsync(async(req , res)=>{
 
 })
 
-exports.createUserMail = catchAsync(async(req , res)=>{
+exports.createUserMail = catchAsync(async (req, res) => {
 
-    const { discreption ,email , name } = req.body;
-    const user = await User.findOne({email});
-    if(!user){
+    const { discreption, email, name } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
         return next(new AppError("Uset Dosn't Exist with This Email", 400));
     }
 
@@ -471,8 +519,8 @@ exports.createUserMail = catchAsync(async(req , res)=>{
         await userEmail({
             email: email,
             subject: `Hey  ${name} `,
-            message: `${name} regarding your query` ,
-            html:`we are here gor your help this is your query ${discreption} Our team Contant with you Thanks ${name} for reached Us`
+            message: `${name} regarding your query`,
+            html: `we are here gor your help this is your query ${discreption} Our team Contant with you Thanks ${name} for reached Us`
         })
 
         res.status(200).json("message send successfly");

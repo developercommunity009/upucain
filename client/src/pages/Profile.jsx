@@ -17,7 +17,7 @@ const Profile = () => {
 
     const context = useContext(StatesContext)
     const { state, handleStateChange } = context
-
+  
     const token = JSON.parse(localStorage.getItem("token"));
     const [activeType, setactiveType] = useState(investmentType[0])
     const [presentImage, setpresentImage] = useState(state.user && state.user?.image?.url)

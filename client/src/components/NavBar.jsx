@@ -9,7 +9,7 @@ import { Bars3BottomRightIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 import logo from '../assets/logo.png'
 import StatesContext from "../context/StatesContext";
-import { useDisconnect, useWeb3Modal, useWeb3ModalAccount, useWeb3ModalState } from "@web3modal/ethers5/react";
+// import { useDisconnect, useWeb3Modal, useWeb3ModalAccount, useWeb3ModalState } from "@web3modal/ethers5/react";
 import { CircularProgress } from "@mui/material";
 
 const NavBar = () => {
@@ -22,31 +22,31 @@ const NavBar = () => {
     const navigate = useNavigate()
     const { pathname } = useLocation()
 
-    const { open } = useWeb3Modal()
-    const { disconnect } = useDisconnect()
-    const { address } = useWeb3ModalAccount()
-    const { open: modalOpen } = useWeb3ModalState()
+    // const { open } = useWeb3Modal()
+    // const { disconnect } = useDisconnect()
+    // const { address } = useWeb3ModalAccount()
+    // const { open: modalOpen } = useWeb3ModalState()
 
 
 
-    const handleConnect = async () => {
+    // const handleConnect = async () => {
 
-        if (address) {
-            await disconnect()
-        } else {
-            open()
-        }
-    }
+    //     if (address) {
+    //         await disconnect()
+    //     } else {
+    //         open()
+    //     }
+    // }
 
-    function formatWalletAddress(address) {
-        const addressLength = address.length;
+    // function formatWalletAddress(address) {
+    //     const addressLength = address.length;
 
-        let value = 4
+    //     let value = 4
 
-        const truncatedAddress = address.slice(0, value) + "..." + address.slice(addressLength - value);
+    //     const truncatedAddress = address.slice(0, value) + "..." + address.slice(addressLength - value);
 
-        return truncatedAddress;
-    }
+    //     return truncatedAddress;
+    // }
 
 
     const routes = [
@@ -77,22 +77,7 @@ const NavBar = () => {
                   
 
                 </div>
-                <div className="flex gap-[10px] items-center md:hidden">
-                    <button className="w-[90px] border border-white text-[12px] font-semibold hover:scale-105 duration-500 text-white rounded-[20px] h-[32px]"
-                        onClick={() => handleConnect()}
-                    >
-                        {modalOpen ? <CircularProgress sx={{ color: 'white' }} size={17} /> : (
-                            <>
-                                {address ? formatWalletAddress(address, true) : 'Connect'}
-                            </>
-                        )}
-                    </button>
-                    <div className='h-[38px] w-[38px] md:hidden bg-[#FFA500] rounded-full flex justify-center items-center'
-                        onClick={() => setisOpen(true)}
-                    >
-                        <Bars3BottomRightIcon className='h-[23px] text-white' />
-                    </div>
-                </div>
+                
             </div>
 
             {isOpen && (

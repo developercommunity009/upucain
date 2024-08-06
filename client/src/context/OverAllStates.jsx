@@ -1,114 +1,120 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
+import socketio from "socket.io-client";
 import { BACKEND_URL } from "../constant";
 import StatesContext from "./StatesContext";
-import { ethers } from "ethers";
-import { useWeb3ModalAccount, useWeb3ModalProvider } from "@web3modal/ethers5/react";
 
+
+
+const getSocket = () => {
+    const token = localStorage.getItem("token");
+    return socketio(BACKEND_URL, {
+        withCredentials: true,
+        auth: { token },
+    });
+};
 
 const OverAllStates = (props) => {
+    const queryClient = useQueryClient();
+    const navigate = useNavigate();
+    const { pathname } = useLocation();
+    const [notificationCount, setNotificationCount] = useState('');
+    let user = "";
 
-    const queryClient = useQueryClient()
+    const loggedInTime = localStorage.getItem("LoggedInTime");
+    const authUserString = localStorage.getItem("authUser");
 
-    const navigate = useNavigate()
-    const { pathname } = useLocation()
 
-    let user = ''
-
-    const loggedInTime = localStorage.getItem('LoggedInTime');
-    const authUserString = localStorage.getItem('authUser');
-    
     if (loggedInTime && authUserString) {
         const loggedInTimeMs = Number(loggedInTime);
         const currentDate = new Date().getTime();
         const fiveMinutesInMilliseconds = 120 * 60 * 1000;
-        const isWithinFiveMinutes = (loggedInTimeMs + fiveMinutesInMilliseconds) > currentDate;
-        console.log(isWithinFiveMinutes);
+        const isWithinFiveMinutes =
+            loggedInTimeMs + fiveMinutesInMilliseconds > currentDate;
         if (isWithinFiveMinutes) {
-             user = JSON.parse(authUserString);
+            user = JSON.parse(authUserString);
         } else {
-            localStorage.removeItem('LoggedInTime');
-            localStorage.removeItem('authUser');
-            localStorage.removeItem('token');
+            localStorage.removeItem("LoggedInTime");
+            localStorage.removeItem("authUser");
+            localStorage.removeItem("token");
         }
     }
+
     const defaultStates = {
         user,
-        success: '',
-        error: '',
-    }
-
+        success: "",
+        error: "",
+    };
 
     const mutation = useMutation({
         mutationFn: () => {
             return fetch(`${BACKEND_URL}/api/v1/users/logout`, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
-                credentials: 'include',
+                credentials: "include",
             });
         },
         onSuccess: () => {
-            if (!pathname.includes('/password/reset')) {
-                navigate('/')
+            if (!pathname.includes("/password/reset")) {
+                navigate("/");
             }
-            localStorage.removeItem('authUser');
-            localStorage.removeItem('LoggedInTime');
-            localStorage.removeItem('token');
-            queryClient.clear()
-            handleStateChange({ user: '' })
-        }
+            localStorage.removeItem("authUser");
+            localStorage.removeItem("LoggedInTime");
+            localStorage.removeItem("token");
+            queryClient.clear();
+            handleStateChange({ user: "" });
+        },
+    });
 
-    })
-
-    const [state, setstate] = useState(defaultStates)
-    const [ethBalance, setethBalance] = useState(0)
-    const [isUpdated, setisUpdated] = useState(false)
-
-    const { walletProvider } = useWeb3ModalProvider()
-    const { address } = useWeb3ModalAccount()
-
-
-    const FetchBalance = async () => {
-
-        const ethersProvider = new ethers.providers.Web3Provider(walletProvider)
-
-        const balanceWei = await ethersProvider.getBalance(address);
-
-        // Convert balance from wei to ether
-        const balanceEther = ethers.utils.formatEther(balanceWei);
-        setethBalance(balanceEther)
-
-    }
+    const [state, setState] = useState(defaultStates);
 
     const handleStateChange = (value) => {
-
-        setstate((prev) => ({
+        setState((prev) => ({
             ...prev,
             ...value,
         }));
     };
 
     const handleLogout = () => {
-       mutation.mutate();
-    }
+        mutation.mutate();
+    };
 
+    const [socket, setSocket] = useState(null);
+    console.log(socket)
     useEffect(() => {
+        setSocket(getSocket());
+    }, []);
+    const token = JSON.parse(localStorage.getItem("token"));
 
-        if (address) {
-            FetchBalance()
-        } else {
-            setethBalance(0)
+    const fetchInvoices = async () => {
+        const response = await fetch(`${BACKEND_URL}/api/v1/invoice/inprogress`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                 'Authorization': `Bearer ${token}`
+            },
+            credentials: 'include',
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        return response.json();
+    };
 
-        if (isUpdated) {
-            setisUpdated(false)
+    const { data = [], error, isFetching } = useQuery({
+        queryKey: ['fetchInvoic'], // Updated key format
+        queryFn: fetchInvoices,
+        onError: (error) => {
+            console.error('Error fetching data:', error);
         }
+        });
 
-    }, [address, isUpdated])
-
+        useEffect(() => {
+            setNotificationCount(data?.length || 0);
+        }, [data]);
 
     return (
         <StatesContext.Provider
@@ -116,11 +122,14 @@ const OverAllStates = (props) => {
                 state,
                 handleStateChange,
                 handleLogout,
-                ethBalance,
-                setisUpdated
-            }}>
+                socket,
+                notificationCount,
+                setNotificationCount
+            }}
+        >
             {props.children}
         </StatesContext.Provider>
-    )
-}
+    );
+};
+
 export default OverAllStates;

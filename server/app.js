@@ -105,6 +105,3 @@ app.use(globalErrorHandler)
 
 // module.exports = app; 
 module.exports = httpServer;
-=======
-module.exports = app; 
->>>>>>> origin/main

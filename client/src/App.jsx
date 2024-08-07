@@ -71,14 +71,9 @@ const App = () => {
   }, [location])
 
 
-<<<<<<< HEAD
-=======
   // useEffect(() => {
   //   mutation.mutate()
   // }, [])
-
-
->>>>>>> origin/main
   return (
     <div className="max-w-[100vw] overflow-hidden">
 

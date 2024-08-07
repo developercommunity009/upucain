@@ -103,9 +103,6 @@ app.all("*" , (req , res, next)=>{
 // Globle error handling
 app.use(globalErrorHandler)
 
-
-
-<<<<<<< HEAD
 // module.exports = app; 
 module.exports = httpServer;
 =======

@@ -9,15 +9,12 @@ const contactEmail = require("../Utils/contactMail");
 const userEmail = require("../Utils/userMail");
 const crypto = require("crypto");  // crypto is rendomly installed
 const { promisify } = require("util");
-<<<<<<< HEAD
 const sendEmail = require("../Utils/email");
 const fs = require('fs');
 const cloudinary = require("../Utils/cloudinaryConfig");
 const upload = require("../Utils/upload");
-=======
 const sendEmail = require("../Utils/email"); 
 const  cloudinary  = require("../Utils/cloudinaryConfig");
->>>>>>> origin/main
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
 const upload = require("../Utils/upload");

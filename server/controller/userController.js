@@ -15,7 +15,6 @@ const cloudinary = require("../Utils/cloudinaryConfig");
 const upload = require("../Utils/upload");
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);
-const upload = require("../Utils/upload");
 
 
 // exports.uploadImage = (req, res) => {
